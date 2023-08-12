@@ -14,24 +14,22 @@ class Mapa:
 
     def __init__(self, archivo):
         self.level = archivo
-        # count = 0
+        leer = False
         with open(self.level, "r") as f:
             tmp = f.readlines()
             self.ancho = int(tmp[0].strip())
             self.paredes.extend(tmp[1].strip().split())
-            count = 0
             for i in tmp:
-                if count < 2:
-                    count += 1
-                    continue
-                self.mapa.append([j for j in i.strip("\n")])
+                if leer:
+                    self.mapa.append([j for j in i.strip("\n")])
+                if i.strip() == 'map':
+                    leer = True
 
         for i in self.mapa:
             while len(i) < self.ancho:
                 i.append(" ")
-        print()
-
         self.alto = len(self.mapa)
+        del tmp
 
     def mostrar(self):
         print("\t\t"+"="*(self.ancho+2))
@@ -66,6 +64,15 @@ class Player:
             mapa[y2][x1] = " "
 
     def ataque(self, mapa):
+        pass
+
+# TODO
+
+
+class Enemy:
+    lista = []
+
+    def __init__(self):
         pass
 
 
@@ -134,7 +141,7 @@ banner = """
 area = Mapa("level.txt")
 jugador = Player(100, 5)
 
-x, y = 1, 1
+x, y = 0, 0
 colisiones = True
 parar = False
 jugador.mover(area.mapa, x, y)
