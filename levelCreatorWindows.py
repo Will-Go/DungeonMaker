@@ -66,8 +66,6 @@ class Player:
     def ataque(self, mapa):
         pass
 
-# TODO
-
 
 class Enemy:
     lista = []
@@ -160,3 +158,7 @@ try:
     kb.wait()
 except KeyboardInterrupt:
     print("Adios")
+
+# TODO Enimies and attack
+
+# Hola muy buenas a todos
