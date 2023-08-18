@@ -21,6 +21,9 @@ class Mapa:
             tmp = f.readlines()
             self.ancho = int(tmp[0].strip())
             self.paredes.extend(tmp[1].strip().split())
+            playerAtr = tmp[2].strip().split()
+            nuevoJugador = Player(int(playerAtr[1]), int(playerAtr[2]), playerAtr[0], posicion=(
+                int(playerAtr[3]), int(playerAtr[4])))
             for i in tmp:
                 # Aqui va a comenzar a buscar por la palabra "enemy", hasta que lo encuentra va a comenzar a leer los atributos de los enemigos
                 if leerEnemigo:
@@ -39,7 +42,6 @@ class Mapa:
                     self.mapa.append([j for j in i.strip("\n")])
                 elif i.strip() == 'map':
                     leer = True
-
         for i in self.mapa:
             while len(i) < self.ancho:
                 i.append(" ")
@@ -57,28 +59,34 @@ class Mapa:
 
 
 class Player:
+    lista = []
+
+    simbolo = ""
     vida = 0
     ataque = 0
     inventario = []
     posicion = ()
     vivo = True
 
-    def __init__(self, vida, ataque, inventario=[], posicion=(1, 1)):
+    def __init__(self, vida, ataque, simbolo="Q", inventario=[], posicion=(1, 1)):
         if vida > 0:
             self.vida = vida
         else:
             self.vivo = False
         self.ataque = ataque
+        self.simbolo = simbolo
         self.inventario = inventario
         self.posicion = posicion
+        Player.lista.append(self)
 
     def mover(self, mapa, x, y):
         if mapa[y][x] not in area.paredes:
             # DETECTA SI ESTA ENCIMA DE UN ENEMIGO
             if mapa[y][x] in Enemy.hashMap.keys():
                 enemigo = Enemy.hashMap[mapa[y][x]]
-                while enemigo.vida > 0:
-                    enemigo.vida -= self.ataque
+                enemigoVida = enemigo.vida
+                while enemigoVida > 0 and self.vida > 0:
+                    enemigoVida -= self.ataque
                     self.vida -= enemigo.ataque
             if self.vida <= 0:
                 self.vivo = False
@@ -87,16 +95,16 @@ class Player:
             mapa[y2][x1] = " "
             self.posicion = (x, y)
             if self.vivo:
-                mapa[y][x] = "Q"
+                mapa[y][x] = color.Fore.BLUE+self.simbolo+color.Fore.RESET
             else:
-                mapa[y][x] = "X"
+                mapa[y][x] = color.Fore.RED+"X"+color.Fore.RESET
 
         else:
             x1, y2 = self.posicion
             mapa[y2][x1] = " "
 
     def mostrar_stats(self):
-        print("Q: ")
+        print(self.simbolo+":")
         print("\tLife:", self.vida)
         print("\tAttack:", self.ataque)
 
@@ -126,19 +134,19 @@ def clear_console():
 def key_press(key):
     global colisiones, x, y, area, jugador, banner
     if jugador.vivo:
-        if key.name == "up":
+        if key.name in ["up", "flecha arriba"]:
             if y != 0:
                 y -= 1
 
-        elif key.name == "down":
+        elif key.name in ["down", "flecha abajo"]:
             if y != area.alto-1:
                 y += 1
 
-        elif key.name == "left":
+        elif key.name in ["left", "flecha izquierda"]:
             if x != 0:
                 x -= 1
 
-        elif key.name == "right":
+        elif key.name in ["right", "flecha derecha"]:
             if x != area.ancho-1:
                 x += 1
 
@@ -164,7 +172,6 @@ def key_press(key):
 
     if not jugador.vivo:
         banner = loseBanner
-
     clear_console()
     print(banner)
     area.mostrar()
@@ -175,6 +182,7 @@ def key_press(key):
         print("PRESS 'esc'")
 
 
+# THIS FONT IS CALL "ANSI SHADOW" FROM "http://patorjk.com/software/taag/"
 loseBanner = color.Fore.RED + """
 ██╗   ██╗ ██████╗ ██╗   ██╗    ██╗      ██████╗ ███████╗███████╗
 ╚██╗ ██╔╝██╔═══██╗██║   ██║    ██║     ██╔═══██╗██╔════╝██╔════╝
@@ -195,10 +203,11 @@ banner = color.Fore.BLUE+"""
 
 
 area = Mapa("level.txt")
-jugador = Player(4, 5)
-x, y = 0, 0
-colisiones = True
+jugador = Player.lista[0]
+x, y = jugador.posicion
 jugador.mover(area.mapa, x, y)
+colisiones = True
+
 
 clear_console()
 print(area.mapa)
@@ -213,11 +222,12 @@ area.mostrar()
 print("Oprime cualquier boton: ")
 
 try:
+
     kb.on_press(key_press)
-    kb.wait("esc")
+    kb.wait('esc')
 except KeyboardInterrupt:
     pass
 
 print("END")
 
-# TODO Enimies, attack, weaponse, items and inventory
+# TODO Hero, attack, weaponse, items and inventory
