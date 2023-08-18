@@ -2,6 +2,13 @@
 # |
 @ 100 5 1 1
 
+items
+      heal
+            P 10
+      weapon
+            J 30
+end
+
 enemy
 s 10 2
 M 100 5
@@ -9,13 +16,13 @@ end
 
 
 map
-
+J
       #####
       #   #
       #   #                  s
       #####                      
                          
-
+P                 P
 
          M
 

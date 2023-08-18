@@ -15,8 +15,11 @@ class Mapa:
 
     def __init__(self, archivo):
         self.level = archivo
-        leer = False
+        leerItems = False
+        leerHeal = False
+        leerAttack = False
         leerEnemigo = False
+        leer = False
         with open(self.level, "r") as f:
             tmp = f.readlines()
             self.ancho = int(tmp[0].strip())
@@ -25,6 +28,28 @@ class Mapa:
             nuevoJugador = Player(int(playerAtr[1]), int(playerAtr[2]), playerAtr[0], posicion=(
                 int(playerAtr[3]), int(playerAtr[4])))
             for i in tmp:
+                # Aqui va a comenzar a buscar por la palabra "items", hasta que lo encuentra va a comenzar a leer los atributos de los items
+                if leerItems:
+                    if i.strip() == 'end':
+                        leerItems = False
+                    else:
+                        if leerHeal:
+                            if i.strip() == 'weapon':
+                                leerHeal = False
+                                leerAttack = True
+                            else:
+                                heal = i.strip().split()
+
+                                nuevoHeal = Heal(heal[0], int(heal[1]))
+                        elif i.strip() == "heal":
+                            leerHeal = True
+
+                        elif leerAttack:
+                            attack = i.strip().split()
+                            nuevoWeapon = Weapon(attack[0], int(attack[1]))
+                elif i.strip() == "items":
+                    leerItems = True
+
                 # Aqui va a comenzar a buscar por la palabra "enemy", hasta que lo encuentra va a comenzar a leer los atributos de los enemigos
                 if leerEnemigo:
                     if i.strip() == 'end':
@@ -91,6 +116,15 @@ class Player:
             if self.vida <= 0:
                 self.vivo = False
 
+            # DETECTA SI ESTA UN ITEM
+            if mapa[y][x] in Item.diccionHeal.keys() or mapa[y][x] in Item.diccionWeapon.keys():
+                if mapa[y][x] in Item.diccionHeal.keys():
+                    heal = Item.diccionHeal[mapa[y][x]]
+                    heal.do(self)
+                else:
+                    weapon = Item.diccionWeapon[mapa[y][x]]
+                    weapon.do(self)
+
             x1, y2 = self.posicion
             mapa[y2][x1] = " "
             self.posicion = (x, y)
@@ -120,6 +154,50 @@ class Enemy:
         self.vida = vida
         self.ataque = ataque
         Enemy.hashMap[simbol] = self
+
+
+class Item:
+    simbol = ""
+    diccionWeapon = {}
+    diccionHeal = {}
+
+    def __init__(self, simbol):
+        self.simbol = simbol
+
+    def do(self):
+        pass
+
+
+class Heal(Item):
+    curacion = 0
+
+    def __init__(self, simbol, curacion):
+        super().__init__(simbol)
+        self.curacion = curacion
+        Item.diccionHeal[simbol] = self
+
+    def __repr__(self):
+        return self.simbol + ", " + str(self.curacion)
+
+    def do(self, personaje):
+        personaje.vida += self.curacion
+
+
+class Weapon(Item):
+    ataque = 0
+
+    def __init__(self, simbol, curacion):
+        super().__init__(simbol)
+        self.ataque = curacion
+        Item.diccionWeapon[simbol] = self
+
+    def __repr__(self):
+        return self.simbol + ", " + str(self.ataque)
+
+    def do(self, personaje):
+        personaje.ataque += self.ataque
+
+#######################################################################################################################################################################################
 
 
 def clear_console():
@@ -217,6 +295,10 @@ print(area.ancho)
 print("Enemigos")
 for i in Enemy.hashMap.values():
     print(i.simbol, ":", "\n\tLife:", i.vida, "\n\tAttack:", i.ataque)
+
+print("Items:")
+print(Item.diccionHeal)
+print(Item.diccionWeapon)
 print(banner)
 area.mostrar()
 print("Oprime cualquier boton: ")
@@ -230,4 +312,4 @@ except KeyboardInterrupt:
 
 print("END")
 
-# TODO Hero, attack, weaponse, items and inventory
+# TODO  weaponse, items and inventory
